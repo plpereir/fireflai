@@ -1,5 +1,8 @@
 package com.ibm.fireflai.controller;
+
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,34 +16,60 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.Gson;
 import com.ibm.fireflai.db.DBConnect;
+import com.ibm.fireflai.model.Opportunity;
 
 @RestController
 @RequestMapping("/api/opportunity")
 public class OpportunityController {
     Logger logger = LoggerFactory.getLogger(OpportunityController.class);
-    
+
     private DBConnect db = new DBConnect();
     private final static String dbName = "fireflaidb-opportunity";
-    
+    private Gson gson = new Gson();
+
     @PostMapping(path = "/add", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Map<String, String> addDocument(@RequestBody Object document) {
-        
-        return db.addDocument(document, dbName);
-    }
-    
-    @DeleteMapping(path = "/delete", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Map<String, String> deleteDocument(@RequestBody Object document) {
-        return db.deleteDocument(document, dbName);
+    public Map<String, String> addDocument(@RequestBody List<Opportunity> documents) {
+        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> mapReturn = new HashMap<String, String>();
+        int i = 1;
+        for (Opportunity document : documents) {
+            map.putAll(db.addDocument(document, dbName));
+            String id = map.get("ID_");
+            mapReturn.put("item_" + i, "Created ID_" + id);
+            map.clear();
+            i++;
+        }
+        return mapReturn;
     }
 
-    public Object getDocument(String idDoc) throws IOException {
-        return db.getDocument(idDoc, dbName);
+    @DeleteMapping(path = "/delete", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, String> deleteDocument(@RequestBody List<Opportunity> documents) {
+        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> mapReturn = new HashMap<String, String>();
+        int i = 1;
+        for (Opportunity document : documents) {
+            map.putAll(db.deleteDocument(document, dbName));
+            String id = map.get("ID_");
+            mapReturn.put("item_" + i, "Deleted ID_" + id);
+            map.clear();
+            i++;
+        }
+        return mapReturn;
+    }
+
+    public Opportunity getDocument(String idDoc) throws IOException {
+        return gson.fromJson(db.getDocument(idDoc, dbName).toString(), Opportunity.class);
     }
 
     @GetMapping("/getall")
-    public List<Object> getAllDocuments() throws IOException {
-        return db.getAllDocuments(dbName);
-    }  
-      
+    public List<Opportunity> getAllDocuments() throws IOException {
+        List<Opportunity> list = new ArrayList<Opportunity>();
+        for (Object o : db.getAllDocuments(dbName)) {
+            list.add(gson.fromJson(o.toString(), Opportunity.class));
+        }
+        return list;
+    }
+
 }

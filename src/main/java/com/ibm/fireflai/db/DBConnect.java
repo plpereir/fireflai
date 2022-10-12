@@ -73,7 +73,7 @@ public class DBConnect {
 
         try {
             String iD = getCloudDatabase(dbName).save(document).getId();
-            map.put("created ID", iD);
+            map.put("ID_", iD);
             logger.info("created ID: " + iD);
             return map;
         } catch (Exception ex) {
@@ -88,7 +88,7 @@ public class DBConnect {
         Map<String, String> map = new HashMap<String, String>();
         try {
             String iD = getCloudDatabase(dbName).remove(document).getId();
-            map.put("deleted ID", iD);
+            map.put("ID_", iD);
             logger.info("deleted ID: " + iD);
             return map;
         } catch (Exception ex) {
